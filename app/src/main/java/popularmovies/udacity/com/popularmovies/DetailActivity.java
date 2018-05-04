@@ -1,8 +1,11 @@
 package popularmovies.udacity.com.popularmovies;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -10,9 +13,16 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 import popularmovies.udacity.com.models.Movie;
+import popularmovies.udacity.com.models.Review;
+import popularmovies.udacity.com.models.Video;
+import popularmovies.udacity.com.utils.NetworkUtils;
 
 public class DetailActivity extends AppCompatActivity {
+
+    private String API_KEY;
 
     private ImageView mThumbnailIV;
     private TextView mTitleTV;
@@ -20,12 +30,22 @@ public class DetailActivity extends AppCompatActivity {
     private RatingBar mUserRatingRB;
     private TextView mReleaseDateTV;
 
+    private RecyclerView mVideosRV;
+    private DetailVideosAdapter mVideosAdapter;
+    private RecyclerView.LayoutManager mVideosLayoutManager;
+
+    private RecyclerView mReviewsRV;
+    private DetailReviewsAdapter mReviewsAdapter;
+    private RecyclerView.LayoutManager mReviewsLayoutManager;
+
     private Movie movieData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+
+        API_KEY = getResources().getString(R.string.movie_db_api_key);
 
         Intent intent = getIntent();
         if (intent == null) {
@@ -48,6 +68,38 @@ public class DetailActivity extends AppCompatActivity {
         mUserRatingRB = findViewById(R.id.detail_user_rating_rb);
         mReleaseDateTV = findViewById(R.id.detail_release_date_tv);
 
+        // videos
+        mVideosRV = findViewById(R.id.detail_videos_rv);
+
+        mVideosAdapter = new DetailVideosAdapter();
+        mVideosLayoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
+
+        mVideosRV.setAdapter(mVideosAdapter);
+        mVideosRV.setLayoutManager(mVideosLayoutManager);
+
+        new VideosQueryTask().execute(API_KEY, String.valueOf(movieData.getId()), NetworkUtils.DETAIL_MOVIE_VIDEOS);
+
+        // reviews
+        mReviewsRV = findViewById(R.id.detail_reviews_rv);
+
+        mReviewsAdapter = new DetailReviewsAdapter();
+        mReviewsLayoutManager = new LinearLayoutManager(this) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        };
+
+        mReviewsRV.setAdapter(mReviewsAdapter);
+        mReviewsRV.setLayoutManager(mReviewsLayoutManager);
+
+        new ReviewsQueryTask().execute(API_KEY, String.valueOf(movieData.getId()), NetworkUtils.DETAIL_MOVIE_REVIEWS);
+
         populateUI();
     }
 
@@ -60,6 +112,34 @@ public class DetailActivity extends AppCompatActivity {
         Picasso.with(this)
                 .load(movieData.getThumbnailUrl())
                 .into(mThumbnailIV);
+    }
+
+    private class VideosQueryTask extends AsyncTask<String, Void, List<Video>> {
+
+        @Override
+        protected List<Video> doInBackground(String... strings) {
+            return NetworkUtils.getVideos(strings[0], strings[1], strings[2]);
+        }
+
+        @Override
+        protected void onPostExecute(List<Video> videos) {
+            mVideosAdapter.setData(videos);
+            mVideosAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private class ReviewsQueryTask extends AsyncTask<String, Void, List<Review>> {
+
+        @Override
+        protected List<Review> doInBackground(String... strings) {
+            return NetworkUtils.getReviews(strings[0], strings[1], strings[2]);
+        }
+
+        @Override
+        protected void onPostExecute(List<Review> reviews) {
+            mReviewsAdapter.setData(reviews);
+            mReviewsAdapter.notifyDataSetChanged();
+        }
     }
 
 }

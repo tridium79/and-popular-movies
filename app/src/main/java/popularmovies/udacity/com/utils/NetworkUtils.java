@@ -17,30 +17,70 @@ import java.util.List;
 import java.util.Scanner;
 
 import popularmovies.udacity.com.models.Movie;
+import popularmovies.udacity.com.models.Review;
+import popularmovies.udacity.com.models.Video;
 
 import static android.content.ContentValues.TAG;
 
 public class NetworkUtils {
 
-    private static final String API_ENDPOINT = "http://api.themoviedb.org/3";
+    private static final String API_ENDPOINT = "http://api.themoviedb.org/3/movie";
     private static final String API_PARAM = "api_key";
 
-    public static final String MOST_POPULAR_MOVIES = "movie/popular";
-    public static final String TOP_RATED_MOVIES = "movie/top_rated";
+    // main
+    public static final String MOST_POPULAR_MOVIES = "popular";
+    public static final String TOP_RATED_MOVIES = "top_rated";
 
-    private static final String API_MOVIE_RESULTS_KEY = "results";
+    private static final String API_MOVIE_ID_KEY = "id";
+    private static final String API_RESULTS_KEY = "results";
     private static final String API_MOVIE_TITLE_KEY = "original_title";
     private static final String API_MOVIE_THUMBNAIL_URL_KEY = "poster_path";
     private static final String API_MOVIE_SYNOPSIS_KEY = "overview";
     private static final String API_MOVIE_USER_RATING_KEY = "vote_average";
     private static final String API_MOVIE_RELEASE_DATE_KEY = "release_date";
 
-    public static List<Movie> getMovies(String sortType, String apiKey) {
-        return getMoviesFromApi(buildUrl(sortType, apiKey));
+    // detail
+    public static final String DETAIL_MOVIE_VIDEOS = "videos";
+    private static final String API_MOVIE_VIDEO_KEY_KEY = "key";
+    private static final String API_MOVIE_VIDEO_NAME_KEY = "name";
+
+    public static final String DETAIL_MOVIE_REVIEWS = "reviews";
+    private static final String API_MOVIE_REVIEW_AUTHOR = "author";
+    private static final String API_MOVIE_REVIEW_CONTENT = "content";
+
+    public static List<Movie> getMovies(String apiKey, String contentType) {
+        String apiResult = getContentFromApi(buildUrl(apiKey, null, contentType));
+
+        if (apiResult != null) {
+            return parseMovieJson(apiResult);
+        } else {
+            return new ArrayList<Movie>(0);
+        }
     }
 
-    private static List<Movie> getMoviesFromApi(URL url) {
+    public static List<Video> getVideos(String apiKey, String movieId, String contentType) {
+        String apiResult = getContentFromApi(buildUrl(apiKey, movieId, contentType));
+
+        if (apiResult != null) {
+            return parseVideoJson(apiResult);
+        } else {
+            return new ArrayList<Video>(0);
+        }
+    }
+
+    public static List<Review> getReviews(String apiKey, String movieId, String contentType) {
+        String apiResult = getContentFromApi(buildUrl(apiKey, movieId, contentType));
+
+        if (apiResult != null) {
+            return parseReviewJson(apiResult);
+        } else {
+            return new ArrayList<Review>(0);
+        }
+    }
+
+    private static String getContentFromApi (URL url) {
         HttpURLConnection urlConnection = null;
+
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -50,7 +90,7 @@ public class NetworkUtils {
             scanner.useDelimiter("\\A");
 
             if (scanner.hasNext()) {
-                return parseMovieJson(scanner.next());
+                return scanner.next();
             } else {
                 return null;
             }
@@ -60,18 +100,21 @@ public class NetworkUtils {
             urlConnection.disconnect();
         }
 
-        return new ArrayList<Movie>(0);
+        return null;
     }
 
-    private static URL buildUrl(String sortType, String apiKey) {
+    private static URL buildUrl(String apiKey, String movieId, String sortType) {
         try {
-            Uri builtUri = Uri.parse(API_ENDPOINT)
-                    .buildUpon()
-                    .appendEncodedPath(sortType)
-                    .appendQueryParameter(API_PARAM, apiKey)
-                    .build();
+            Uri.Builder uriBuilder = Uri.parse(API_ENDPOINT).buildUpon();
 
-            return new URL(builtUri.toString());
+            if (movieId != null) {
+                uriBuilder.appendPath(movieId);
+            }
+
+            uriBuilder.appendPath(sortType)
+                    .appendQueryParameter(API_PARAM, apiKey);
+
+            return new URL(uriBuilder.build().toString());
         } catch (MalformedURLException e) {
             Log.e(TAG, "buildUrl: ", e);
         }
@@ -82,35 +125,82 @@ public class NetworkUtils {
     private static List<Movie> parseMovieJson(String movieData) {
         List<Movie> movies = new ArrayList<Movie>();
 
-        JSONObject moviesJson = null;
-        try {
-            moviesJson = new JSONObject(movieData);
-        } catch (JSONException e) {
-            Log.e(TAG, "parseMovieJson: ", e);
-        }
-
+        JSONObject moviesJson = JsonUtils.convertStringToJsonObject(movieData);
         if (moviesJson == null) {
             return movies;
         }
 
         try {
-            JSONArray movieResults = moviesJson.getJSONArray(API_MOVIE_RESULTS_KEY);
+            JSONArray movieResults = moviesJson.getJSONArray(API_RESULTS_KEY);
 
             for (int i = 0; i < movieResults.length(); i++) {
                 JSONObject movieJson = (JSONObject) movieResults.get(i);
 
+                int id = movieJson.optInt(API_MOVIE_ID_KEY, 0);
                 String title = movieJson.optString(API_MOVIE_TITLE_KEY);
                 String thumbnailUrl = movieJson.optString(API_MOVIE_THUMBNAIL_URL_KEY);
                 String synopsis = movieJson.optString(API_MOVIE_SYNOPSIS_KEY);
                 float userRating = (float) movieJson.optDouble(API_MOVIE_USER_RATING_KEY, 0.0);
                 String releaseDate = movieJson.optString(API_MOVIE_RELEASE_DATE_KEY);
 
-                movies.add(new Movie(title, thumbnailUrl, synopsis, userRating, releaseDate));
+                movies.add(new Movie(id, title, thumbnailUrl, synopsis, userRating, releaseDate));
             }
         } catch (JSONException e) {
             Log.e(TAG, "parseMovieJson: ", e);
         }
 
         return movies;
+    }
+
+    private static List<Video> parseVideoJson(String videoData) {
+        List<Video> videos = new ArrayList<Video>();
+
+        JSONObject reviewsJson = JsonUtils.convertStringToJsonObject(videoData);
+        if (reviewsJson == null) {
+            return videos;
+        }
+
+        try {
+            JSONArray reviewResults = reviewsJson.getJSONArray(API_RESULTS_KEY);
+
+            for (int i = 0; i < reviewResults.length(); i++) {
+                JSONObject videoJson = (JSONObject) reviewResults.get(i);
+
+                String name = videoJson.optString(API_MOVIE_VIDEO_NAME_KEY);
+                String key = videoJson.optString(API_MOVIE_VIDEO_KEY_KEY);
+
+                videos.add(new Video(name, key));
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "parseVideoJson: ", e);
+        }
+
+        return videos;
+    }
+
+    private static List<Review> parseReviewJson(String reviewData) {
+        List<Review> reviews = new ArrayList<Review>();
+
+        JSONObject reviewsJson = JsonUtils.convertStringToJsonObject(reviewData);
+        if (reviewsJson == null) {
+            return reviews;
+        }
+
+        try {
+            JSONArray reviewResults = reviewsJson.getJSONArray(API_RESULTS_KEY);
+
+            for (int i = 0; i < reviewResults.length(); i++) {
+                JSONObject reviewJson = (JSONObject) reviewResults.get(i);
+
+                String author = reviewJson.optString(API_MOVIE_REVIEW_AUTHOR);
+                String content = reviewJson.optString(API_MOVIE_REVIEW_CONTENT);
+
+                reviews.add(new Review(author, content));
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "parseReviewJson: ", e);
+        }
+
+        return reviews;
     }
 }

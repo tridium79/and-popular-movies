@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:isScrollContainer="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp">
+
+    <ImageView
+        android:id="@+id/detail_video_thumbnail_iv"
+        android:layout_width="180dp"
+        android:layout_height="135dp"
+        android:scaleType="fitXY"
+        android:background="#f0f0f0"
+        android:contentDescription="Video thumbnail"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/detail_video_name_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/detail_video_thumbnail_iv"
+        app:layout_constraintStart_toEndOf="@+id/detail_video_thumbnail_iv"
+        app:layout_constraintTop_toTopOf="@+id/detail_video_thumbnail_iv"
+        tools:text="Video name" />
+
+</android.support.constraint.ConstraintLayout>

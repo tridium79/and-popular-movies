@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
         if (isOnline()) {
-            new PopularMoviesQueryTask().execute(NetworkUtils.MOST_POPULAR_MOVIES, API_KEY);
+            new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.MOST_POPULAR_MOVIES);
         } else {
             showNetworkErrorToast();
         }
@@ -80,10 +80,10 @@ public class MainActivity extends AppCompatActivity {
             if (isOnline()) {
                 switch (selectedToggleId) {
                     case R.id.toggle_most_popular:
-                        new PopularMoviesQueryTask().execute(NetworkUtils.MOST_POPULAR_MOVIES, API_KEY);
+                        new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.MOST_POPULAR_MOVIES);
                         break;
                     default: // R.id.toggle_top_rated:
-                        new PopularMoviesQueryTask().execute(NetworkUtils.TOP_RATED_MOVIES, API_KEY);
+                        new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.TOP_RATED_MOVIES);
                         break;
                 }
             } else {
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, R.string.no_network_connectivity_error, Toast.LENGTH_LONG).show();
     }
 
-    private class PopularMoviesQueryTask extends AsyncTask<String, Void, List<Movie>> {
+    private class GetMoviesQueryTask extends AsyncTask<String, Void, List<Movie>> {
         @Override
         protected void onPreExecute() {
             mLoadingIndicator.setVisibility(View.VISIBLE);

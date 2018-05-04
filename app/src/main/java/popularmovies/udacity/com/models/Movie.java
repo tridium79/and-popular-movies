@@ -11,6 +11,7 @@ import static android.content.ContentValues.TAG;
 
 public class Movie implements Serializable{
 
+    private int id;
     private String title;
     private String thumbnailUrl;
     private String synopsis;
@@ -22,7 +23,8 @@ public class Movie implements Serializable{
     public Movie() {
     }
 
-    public Movie(String title, String thumbnailUrl, String synopsis, float userRating, String releaseDate) {
+    public Movie(int id, String title, String thumbnailUrl, String synopsis, float userRating, String releaseDate) {
+        this.id = id;
         this.title = title;
         this.thumbnailUrl = thumbnailUrl;
         this.synopsis = synopsis;
@@ -34,6 +36,14 @@ public class Movie implements Serializable{
             Log.w(TAG, "Movie: ", e);
             this.releaseDate = new Date();
         }
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitle() {
