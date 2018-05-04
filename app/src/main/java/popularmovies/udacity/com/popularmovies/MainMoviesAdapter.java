@@ -1,15 +1,12 @@
 package popularmovies.udacity.com.popularmovies;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +25,7 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Vi
     }
 
     @Override
+    @NonNull
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View singleMovieView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.activity_main_recyclerview_item, parent, false);
@@ -67,14 +65,14 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Vi
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public ImageView thumbnailIV;
-        public TextView titleTV;
+        private final ImageView thumbnailIV;
+        private final TextView titleTV;
 
-        public ViewHolder(View v) {
+        private ViewHolder(View v) {
             super(v);
 
-            thumbnailIV = (ImageView) v.findViewById(R.id.main_movie_thumbnail);
-            titleTV = (TextView) v.findViewById(R.id.main_movie_title);
+            thumbnailIV = v.findViewById(R.id.main_movie_thumbnail);
+            titleTV = v.findViewById(R.id.main_movie_title);
         }
     }
 

@@ -2,7 +2,15 @@
     <string name="app_name">Popular Movies</string>
     <string name="movie_db_api_key">FILL_THIS_IN</string>
 
+    <!-- main -->
+    <string name="main_movie_thumbnail">Movie poster</string>
+    <string name="main_most_popular_button_text">Most Popular</string>
+    <string name="main_top_rated_button_text">Top Rated</string>
+
+    <!-- detail -->
     <string name="title_activity_movie_detail">MovieDetailActivity</string>
-    <string name="detail_view_movie_poster">Movie poster</string>
+    <string name="detail_movie_poster">Movie poster</string>
+
+    <!-- errors -->
     <string name="no_network_connectivity_error">No network connectivity detected. Click one of the sort options above to try again.</string>
 </resources>

@@ -29,8 +29,8 @@
             android:checked="true"
             android:onClick="onToggle"
             android:textAllCaps="false"
-            android:textOff="Most Popular"
-            android:textOn="Most Popular"
+            android:textOff="@string/main_most_popular_button_text"
+            android:textOn="@string/main_most_popular_button_text"
             android:textSize="14sp" />
 
         <ToggleButton
@@ -40,8 +40,8 @@
             android:layout_weight="1"
             android:onClick="onToggle"
             android:textAllCaps="false"
-            android:textOff="Top Rated"
-            android:textOn="Top Rated"
+            android:textOff="@string/main_top_rated_button_text"
+            android:textOn="@string/main_top_rated_button_text"
             android:textSize="14sp" />
     </RadioGroup>
 
@@ -50,6 +50,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginLeft="@dimen/default_margin"
+        android:layout_marginStart="@dimen/default_margin"
         android:layout_marginTop="@dimen/default_margin"
         android:scrollbars="vertical"
         android:visibility="invisible"

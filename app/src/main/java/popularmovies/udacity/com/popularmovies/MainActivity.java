@@ -2,11 +2,10 @@ package popularmovies.udacity.com.popularmovies;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -32,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String API_KEY;
 
-    private List<Movie> movieData;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,8 +49,7 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        movieData = new ArrayList();
-        mAdapter = new MainMoviesAdapter(movieData);
+        mAdapter = new MainMoviesAdapter(new ArrayList<Movie>(0));
         mRecyclerView.setAdapter(mAdapter);
 
         if (isOnline()) {

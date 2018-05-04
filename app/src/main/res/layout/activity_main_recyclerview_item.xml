@@ -6,7 +6,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/default_margin"
-    android:layout_marginRight="@dimen/default_margin">
+    android:layout_marginRight="@dimen/default_margin"
+    android:layout_marginEnd="@dimen/default_margin">
 
     <ImageView
         android:id="@+id/main_movie_thumbnail"
@@ -16,7 +17,8 @@
         android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/main_movie_thumbnail" />
 
     <TextView
         android:id="@+id/main_movie_title"

@@ -23,7 +23,7 @@
             android:layout_marginTop="@dimen/default_margin"
             android:adjustViewBounds="true"
             android:background="#f0f0f0"
-            android:contentDescription="@string/detail_view_movie_poster"
+            android:contentDescription="@string/detail_movie_poster"
             android:scaleType="centerCrop"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.476"

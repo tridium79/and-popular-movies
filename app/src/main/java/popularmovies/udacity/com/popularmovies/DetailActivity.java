@@ -55,7 +55,7 @@ public class DetailActivity extends AppCompatActivity {
         mTitleTV.setText(movieData.getTitle());
         mSynopsisTV.setText(movieData.getSynopsis());
         mUserRatingRB.setRating(movieData.getUserRating());
-        mReleaseDateTV.setText(movieData.getReleaseDate().toString());
+        mReleaseDateTV.setText(movieData.getReleaseDate());
 
         Picasso.with(this)
                 .load(movieData.getThumbnailUrl())

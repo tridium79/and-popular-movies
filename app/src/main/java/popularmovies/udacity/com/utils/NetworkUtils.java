@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import popularmovies.udacity.com.models.Movie;
-import popularmovies.udacity.com.popularmovies.R;
 
 import static android.content.ContentValues.TAG;
 
@@ -61,7 +60,7 @@ public class NetworkUtils {
             urlConnection.disconnect();
         }
 
-        return new ArrayList(0);
+        return new ArrayList<Movie>(0);
     }
 
     private static URL buildUrl(String sortType, String apiKey) {
@@ -81,7 +80,7 @@ public class NetworkUtils {
     }
 
     private static List<Movie> parseMovieJson(String movieData) {
-        List movies = new ArrayList();
+        List<Movie> movies = new ArrayList<Movie>();
 
         JSONObject moviesJson = null;
         try {
