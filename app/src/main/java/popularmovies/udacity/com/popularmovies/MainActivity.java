@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -23,6 +24,8 @@ import popularmovies.udacity.com.utils.NetworkUtils;
 public class MainActivity extends AppCompatActivity {
 
     private RadioGroup mRadioGroup;
+    private ProgressBar mLoadingIndicator;
+
     private RecyclerView mRecyclerView;
     private MainMoviesAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -37,6 +40,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         API_KEY = this.getResources().getString(R.string.movie_db_api_key);
+
+        mRadioGroup = findViewById(R.id.toggleGroup);
+        mRadioGroup.setOnCheckedChangeListener(toggleListener);
+
+        mLoadingIndicator = findViewById(R.id.main_loading_indicator);
 
         mRecyclerView = findViewById(R.id.my_recycler_view);
         mRecyclerView.setHasFixedSize(true);
@@ -53,9 +61,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             showNetworkErrorToast();
         }
-
-        mRadioGroup = findViewById(R.id.toggleGroup);
-        mRadioGroup.setOnCheckedChangeListener(toggleListener);
     }
 
     private static final RadioGroup.OnCheckedChangeListener toggleListener = new RadioGroup.OnCheckedChangeListener() {
@@ -104,6 +109,12 @@ public class MainActivity extends AppCompatActivity {
 
     private class PopularMoviesQueryTask extends AsyncTask<String, Void, List<Movie>> {
         @Override
+        protected void onPreExecute() {
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
         protected List<Movie> doInBackground(String... strings) {
             return NetworkUtils.getMovies(strings[0], strings[1]);
         }
@@ -112,6 +123,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(List<Movie> movies) {
             mAdapter.setMovieData(movies);
             mAdapter.notifyDataSetChanged();
+
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             mRecyclerView.scrollToPosition(0);
         }
     }
