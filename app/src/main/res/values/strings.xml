@@ -4,13 +4,22 @@
 
     <!-- main -->
     <string name="main_movie_thumbnail">Movie poster</string>
-    <string name="main_most_popular_button_text">Most Popular</string>
-    <string name="main_top_rated_button_text">Top Rated</string>
+
+    <string name="main_sort_option_spinner_key">sortOptionsSpinner</string>
+    <string-array name="main_sort_options">
+        <item>Most popular</item>
+        <item>Highest rated</item>
+        <item>My favorites</item>
+    </string-array>
 
     <!-- detail -->
     <string name="title_activity_movie_detail">MovieDetailActivity</string>
     <string name="detail_movie_poster">Movie poster</string>
 
+    <string name="detail_favorite_button_favorite">Favorite</string>
+    <string name="detail_favorite_button_unfavorite">Unfavorite</string>
+
     <!-- errors -->
     <string name="no_network_connectivity_error">No network connectivity detected. Click one of the sort options above to try again.</string>
+    <string name="main_no_favorite_movies_toast_text">You do not have any favorited movies yet. Start by favoriting a movie in the details page.</string>
 </resources>

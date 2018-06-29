@@ -30,6 +30,7 @@ public class NetworkUtils {
     // main
     public static final String MOST_POPULAR_MOVIES = "popular";
     public static final String TOP_RATED_MOVIES = "top_rated";
+    public static final String FAVORITE_MOVIES = "favorites";
 
     private static final String API_MOVIE_ID_KEY = "id";
     private static final String API_RESULTS_KEY = "results";
@@ -52,10 +53,26 @@ public class NetworkUtils {
         String apiResult = getContentFromApi(buildUrl(apiKey, null, contentType));
 
         if (apiResult != null) {
-            return parseMovieJson(apiResult);
+            return parseMoviesJson(apiResult);
         } else {
             return new ArrayList<Movie>(0);
         }
+    }
+
+    public static Movie getMovie(String apiKey, Integer movieId) {
+        String apiResult = getContentFromApi(buildUrl(apiKey, movieId.toString(), null));
+
+        if (apiResult != null) {
+            JSONObject movieJson = JsonUtils.convertStringToJsonObject(apiResult);
+
+            if (movieJson == null) {
+                return null;
+            }
+
+            return parseMovieJson(movieJson);
+        }
+
+        return null;
     }
 
     public static List<Video> getVideos(String apiKey, String movieId, String contentType) {
@@ -111,8 +128,11 @@ public class NetworkUtils {
                 uriBuilder.appendPath(movieId);
             }
 
-            uriBuilder.appendPath(sortType)
-                    .appendQueryParameter(API_PARAM, apiKey);
+            if (sortType != null) {
+                uriBuilder.appendPath(sortType);
+            }
+
+            uriBuilder.appendQueryParameter(API_PARAM, apiKey);
 
             return new URL(uriBuilder.build().toString());
         } catch (MalformedURLException e) {
@@ -122,10 +142,10 @@ public class NetworkUtils {
         return null;
     }
 
-    private static List<Movie> parseMovieJson(String movieData) {
-        List<Movie> movies = new ArrayList<Movie>();
+    private static List<Movie> parseMoviesJson(String moviesData) {
+        List<Movie> movies = new ArrayList<>();
 
-        JSONObject moviesJson = JsonUtils.convertStringToJsonObject(movieData);
+        JSONObject moviesJson = JsonUtils.convertStringToJsonObject(moviesData);
         if (moviesJson == null) {
             return movies;
         }
@@ -134,22 +154,24 @@ public class NetworkUtils {
             JSONArray movieResults = moviesJson.getJSONArray(API_RESULTS_KEY);
 
             for (int i = 0; i < movieResults.length(); i++) {
-                JSONObject movieJson = (JSONObject) movieResults.get(i);
-
-                int id = movieJson.optInt(API_MOVIE_ID_KEY, 0);
-                String title = movieJson.optString(API_MOVIE_TITLE_KEY);
-                String thumbnailUrl = movieJson.optString(API_MOVIE_THUMBNAIL_URL_KEY);
-                String synopsis = movieJson.optString(API_MOVIE_SYNOPSIS_KEY);
-                float userRating = (float) movieJson.optDouble(API_MOVIE_USER_RATING_KEY, 0.0);
-                String releaseDate = movieJson.optString(API_MOVIE_RELEASE_DATE_KEY);
-
-                movies.add(new Movie(id, title, thumbnailUrl, synopsis, userRating, releaseDate));
+                movies.add(parseMovieJson((JSONObject) movieResults.get(i)));
             }
         } catch (JSONException e) {
-            Log.e(TAG, "parseMovieJson: ", e);
+            Log.e(TAG, "parseMoviesJson: ", e);
         }
 
         return movies;
+    }
+
+    private static Movie parseMovieJson(JSONObject movieJson) {
+        int id = movieJson.optInt(API_MOVIE_ID_KEY, 0);
+        String title = movieJson.optString(API_MOVIE_TITLE_KEY);
+        String thumbnailUrl = movieJson.optString(API_MOVIE_THUMBNAIL_URL_KEY);
+        String synopsis = movieJson.optString(API_MOVIE_SYNOPSIS_KEY);
+        float userRating = (float) movieJson.optDouble(API_MOVIE_USER_RATING_KEY, 0.0);
+        String releaseDate = movieJson.optString(API_MOVIE_RELEASE_DATE_KEY);
+
+        return new Movie(id, title, thumbnailUrl, synopsis, userRating, releaseDate);
     }
 
     private static List<Video> parseVideoJson(String videoData) {

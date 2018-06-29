@@ -1,12 +1,14 @@
 package popularmovies.udacity.com.models;
 
+import android.net.Uri;
+
 public class Video {
     private String name;
-    private String key;
+    private String id;
 
-    public Video(String name, String key) {
+    public Video(String name, String id) {
         this.name = name;
-        this.key = key;
+        this.id = id;
     }
 
     public String getName() {
@@ -17,15 +19,23 @@ public class Video {
         this.name = name;
     }
 
-    public String getKey() {
-        return key;
+    public String getId() {
+        return id;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getThumbnailUrl() {
-        return "https://img.youtube.com/vi/" + this.key + "/hqdefault.jpg";
+        return "https://img.youtube.com/vi/" + this.id + "/hqdefault.jpg";
+    }
+
+    public Uri getAppUri() {
+        return Uri.parse("vnd.youtube:" + this.id);
+    }
+
+    public Uri getWebUri() {
+        return Uri.parse("https://www.youtube.com/watch?v=" + this.id);
     }
 }

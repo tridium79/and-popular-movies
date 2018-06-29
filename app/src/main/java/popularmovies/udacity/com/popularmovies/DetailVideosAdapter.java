@@ -1,7 +1,9 @@
 package popularmovies.udacity.com.popularmovies;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -44,17 +46,20 @@ public class DetailVideosAdapter extends RecyclerView.Adapter<DetailVideosAdapte
                 .into(holder.thumbnailIV);
         holder.titleTV.setText(video.getName());
 
-//        holder.itemView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Context context = v.getContext();
-//
-//                Intent intent = new Intent(context, DetailActivity.class);
-//                intent.putExtra("MovieDetails", video);
-//
-//                context.startActivity(intent);
-//            }
-//        });
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = v.getContext();
+                Intent appIntent = new Intent(Intent.ACTION_VIEW, video.getAppUri());
+                Intent webIntent = new Intent(Intent.ACTION_VIEW, video.getWebUri());
+
+                try {
+                    context.startActivity(appIntent);
+                } catch (ActivityNotFoundException e) {
+                    context.startActivity(webIntent);
+                }
+            }
+        });
     }
 
     @Override

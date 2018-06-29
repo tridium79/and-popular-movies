@@ -1,7 +1,9 @@
 package popularmovies.udacity.com.popularmovies;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,21 +11,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import popularmovies.udacity.com.data.FavoriteMovieDbHelper;
 import popularmovies.udacity.com.models.Movie;
 import popularmovies.udacity.com.utils.NetworkUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
-    private RadioGroup mRadioGroup;
+    private Spinner mSortOptionsSpinner;
     private ProgressBar mLoadingIndicator;
+
+    private FavoriteMovieDbHelper dbHelper;
 
     private RecyclerView mRecyclerView;
     private MainMoviesAdapter mAdapter;
@@ -38,8 +46,13 @@ public class MainActivity extends AppCompatActivity {
 
         API_KEY = this.getResources().getString(R.string.movie_db_api_key);
 
-        mRadioGroup = findViewById(R.id.toggleGroup);
-        mRadioGroup.setOnCheckedChangeListener(toggleListener);
+        dbHelper = new FavoriteMovieDbHelper(this);
+
+        mSortOptionsSpinner = findViewById(R.id.sort_options_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.main_sort_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        mSortOptionsSpinner.setAdapter(adapter);
+        mSortOptionsSpinner.setOnItemSelectedListener(this);
 
         mLoadingIndicator = findViewById(R.id.main_loading_indicator);
 
@@ -52,43 +65,62 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new MainMoviesAdapter(new ArrayList<Movie>(0));
         mRecyclerView.setAdapter(mAdapter);
 
+        loadSortOptionPreference();
+
         if (isOnline()) {
-            new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.MOST_POPULAR_MOVIES);
+            refreshMovies(mSortOptionsSpinner.getSelectedItemPosition());
         } else {
             showNetworkErrorToast();
         }
     }
 
-    private static final RadioGroup.OnCheckedChangeListener toggleListener = new RadioGroup.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(final RadioGroup radioGroup, final int i) {
-            for (int j = 0; j < radioGroup.getChildCount(); j++) {
-                final ToggleButton view = (ToggleButton) radioGroup.getChildAt(j);
-                view.setChecked(view.getId() == i);
-            }
+    private void saveSortOptionPreference(int position) {
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        editor.putInt(getResources().getString(R.string.main_sort_option_spinner_key), position);
+        editor.commit();
+    }
+
+    private void loadSortOptionPreference() {
+        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
+        int sortOptionsSelectedOption = sharedPreferences.getInt(getResources().getString(R.string.main_sort_option_spinner_key), 0);
+        mSortOptionsSpinner.setSelection(sortOptionsSelectedOption);
+    }
+
+    // for spinner selection
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (!isOnline()) {
+            showNetworkErrorToast();
+            return;
         }
-    };
 
-    public void onToggle(View view) {
-        int currentlySelectedToggleId = mRadioGroup.getCheckedRadioButtonId();
-        int selectedToggleId = view.getId();
+        saveSortOptionPreference(position);
 
-        mRadioGroup.clearCheck();
-        mRadioGroup.check(selectedToggleId);
+        refreshMovies(position);
+    }
 
-        if (currentlySelectedToggleId != selectedToggleId) {
-            if (isOnline()) {
-                switch (selectedToggleId) {
-                    case R.id.toggle_most_popular:
-                        new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.MOST_POPULAR_MOVIES);
-                        break;
-                    default: // R.id.toggle_top_rated:
-                        new GetMoviesQueryTask().execute(API_KEY, NetworkUtils.TOP_RATED_MOVIES);
-                        break;
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        // do nothing
+    }
+
+    private void refreshMovies(int position) {
+        switch (position) {
+            case 0:
+                new GetMoviesQueryTask(null).execute(API_KEY, NetworkUtils.MOST_POPULAR_MOVIES);
+                break;
+            case 1:
+                new GetMoviesQueryTask(null).execute(API_KEY, NetworkUtils.TOP_RATED_MOVIES);
+                break;
+            case 2:
+                List<Integer> favoriteMovieIds = dbHelper.getFavoriteMovieIds();
+
+                if (favoriteMovieIds.isEmpty()) {
+                    Toast.makeText(this, getResources().getString(R.string.main_no_favorite_movies_toast_text), Toast.LENGTH_LONG).show();
                 }
-            } else {
-                showNetworkErrorToast();
-            }
+
+                new GetMoviesQueryTask(favoriteMovieIds).execute(API_KEY, NetworkUtils.FAVORITE_MOVIES);
+                break;
         }
     }
 
@@ -104,6 +136,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class GetMoviesQueryTask extends AsyncTask<String, Void, List<Movie>> {
+        List<Integer> favoriteMovieIds;
+
+        public GetMoviesQueryTask(List<Integer> favoriteMovieIds) {
+            super();
+
+            this.favoriteMovieIds = favoriteMovieIds;
+        }
+
         @Override
         protected void onPreExecute() {
             mLoadingIndicator.setVisibility(View.VISIBLE);
@@ -112,7 +152,21 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected List<Movie> doInBackground(String... strings) {
-            return NetworkUtils.getMovies(strings[0], strings[1]);
+            if (strings[1].equals(NetworkUtils.FAVORITE_MOVIES)) {
+                List<Movie> favoriteMovies = new ArrayList<>();
+
+                for(Integer movieId : favoriteMovieIds) {
+                    Movie movie = NetworkUtils.getMovie(strings[0], movieId);
+
+                    if (movie != null) {
+                        favoriteMovies.add(movie);
+                    }
+                }
+
+                return favoriteMovies;
+            } else {
+                return NetworkUtils.getMovies(strings[0], strings[1]);
+            }
         }
 
         @Override
