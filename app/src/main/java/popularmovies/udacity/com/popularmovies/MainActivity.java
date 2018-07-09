@@ -1,10 +1,13 @@
 package popularmovies.udacity.com.popularmovies;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +25,8 @@ import android.widget.ToggleButton;
 import java.util.ArrayList;
 import java.util.List;
 
+import popularmovies.udacity.com.data.FavoriteMovieContentProvider;
+import popularmovies.udacity.com.data.FavoriteMovieContract;
 import popularmovies.udacity.com.data.FavoriteMovieDbHelper;
 import popularmovies.udacity.com.models.Movie;
 import popularmovies.udacity.com.utils.NetworkUtils;
@@ -113,7 +118,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 new GetMoviesQueryTask(null).execute(API_KEY, NetworkUtils.TOP_RATED_MOVIES);
                 break;
             case 2:
-                List<Integer> favoriteMovieIds = dbHelper.getFavoriteMovieIds();
+                ContentResolver contentResolver = getContentResolver();
+                Uri getMoviesUri = FavoriteMovieContract.CONTENT_URI.buildUpon().appendPath("movies").build();
+                Cursor cursor = contentResolver.query(getMoviesUri, null, null, null, null);
+
+                List<Integer> favoriteMovieIds = new ArrayList<>();
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    while (!cursor.isAfterLast()) {
+                        int movieId = cursor.getInt(cursor.getColumnIndex(FavoriteMovieContract.FavoriteMovie.COLUMN_MOVIE_ID));
+                        favoriteMovieIds.add(movieId);
+                        cursor.moveToNext();
+                    }
+                }
 
                 if (favoriteMovieIds.isEmpty()) {
                     Toast.makeText(this, getResources().getString(R.string.main_no_favorite_movies_toast_text), Toast.LENGTH_LONG).show();

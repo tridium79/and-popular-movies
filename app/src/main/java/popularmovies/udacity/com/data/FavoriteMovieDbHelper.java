@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-import static popularmovies.udacity.com.data.FavoriteMovieContract.FavoriteMovieEntry.*;
+import static popularmovies.udacity.com.data.FavoriteMovieContract.FavoriteMovie.*;
 
 public class FavoriteMovieDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "favorite_movies.db";
@@ -41,8 +41,10 @@ public class FavoriteMovieDbHelper extends SQLiteOpenHelper {
     }
 
     // returns isFavorite value to update
-    public boolean toggleIsFavorite(String movieId) {
+    public boolean toggleIsFavorite(ContentValues contentValues) {
         SQLiteDatabase db = this.getWritableDatabase();
+
+        String movieId = contentValues.getAsString(FavoriteMovieContract.FavoriteMovie.COLUMN_MOVIE_ID);
 
         if (getIsFavorite(movieId)) {
             db.delete(TABLE_NAME, COLUMN_MOVIE_ID + " = ?", new String[] { movieId });
@@ -56,22 +58,9 @@ public class FavoriteMovieDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public List<Integer> getFavoriteMovieIds() {
+    public Cursor getFavoriteMovieIds() {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + FavoriteMovieContract.FavoriteMovieEntry.TABLE_NAME, null);
 
-        List<Integer> favoriteMovieIds = new ArrayList<>();
-
-        if (cursor.moveToFirst()) {
-            while (!cursor.isAfterLast()) {
-                int movieId = cursor.getInt(cursor.getColumnIndex(FavoriteMovieContract.FavoriteMovieEntry.COLUMN_MOVIE_ID));
-
-                favoriteMovieIds.add(movieId);
-
-                cursor.moveToNext();
-            }
-        }
-
-        return favoriteMovieIds;
+        return db.query(FavoriteMovieContract.FavoriteMovie.TABLE_NAME, null, null, null, null, null, null);
     }
 }

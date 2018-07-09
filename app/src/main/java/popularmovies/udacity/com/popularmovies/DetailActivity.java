@@ -1,6 +1,10 @@
 package popularmovies.udacity.com.popularmovies;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +20,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import popularmovies.udacity.com.data.FavoriteMovieContract;
 import popularmovies.udacity.com.data.FavoriteMovieDbHelper;
 import popularmovies.udacity.com.models.Movie;
 import popularmovies.udacity.com.models.Review;
@@ -82,8 +87,16 @@ public class DetailActivity extends AppCompatActivity {
         mFavoriteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean isUpdatedFavorite = dbHelper.toggleIsFavorite(Integer.toString(movieData.getId()));
-                setIsFavoriteButton(isUpdatedFavorite);
+                ContentResolver contentResolver = getContentResolver();
+
+                Uri insertUri = FavoriteMovieContract.CONTENT_URI.buildUpon().appendEncodedPath("movie/favorite").build();
+
+                ContentValues cv = new ContentValues();
+                cv.put(FavoriteMovieContract.FavoriteMovie.COLUMN_MOVIE_ID, movieData.getId());
+
+                Uri result = contentResolver.insert(insertUri, cv);
+
+                setIsFavoriteButton(result != null);
             }
         });
 
